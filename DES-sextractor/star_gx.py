@@ -100,20 +100,6 @@ def star_gx(salida_sex, fwhm, plot=None):
     pre_gx = goodies[!(upp_mu & low_mu & under_mu & small_fwhm)]
     gx = pre_gx[pre_gx['CLASS_STAR'] > 0.8 | pre_gx['MU_MAX'] > mu-ancho]
 
-    for j in range(nobj):
-        mu=m*MAGBEST[j]+(muaj-20.)
-        if MUMAX[j] > mumin and FWHM[j] > fwhm-0.5 and FLAG[j] < 4.0:
-            if MUMAX[j] < mu+ancho and MUMAX[j] < mumax and FWHM[j] < fwhm+0.8 \
-                and MUMAX[j] > mu-ancho:
-                stars[i,:]=cat[j,:]
-                i=i+1
-            elif CLASS[j] < 0.8:
-                if MUMAX[j] > mumax:
-                    gx[g,:]=cat[j,:]
-                    g=g+1
-                elif MUMAX[j] > mu-ancho:
-                    gx[g,:]=cat[j,:]
-                    g=g+1
 
 
     stars=stars[:i,:]
