@@ -1,5 +1,5 @@
-import os
-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -7,31 +7,31 @@ from astropy.io import ascii
 
 
 def star_gx(salida_sex, fwhm, plot=None):
-    #~ print '######## CLASIFICANDO LOS OBJETOs #######'
-    #reads the catalogue of the first run of sextractor
+    # ~ print '######## CLASIFICANDO LOS OBJETOs #######'
+    # reads the catalogue of the second run of sextractor
     cat = ascii.read(salida_sex, format='sextractor')
 
-    #extract some nobjameters from the catalogue
+    # extract some nobjameters from the catalogue
     FWHM = cat['FWHM_IMAGE']
     MAGBEST = cat['MAG_BEST']
     MUMAX = cat['MU_MAX']
-    CLASS=cat['CLASS_STAR']
-    FLAG=cat['FLAGS']
-    nobj=len(cat)
-    ALFA=cat['ALPHA_J2000']
-    DELTA=cat['DELTA_J2000']
-    control2=np.zeros(4,float)
-    comnobjar=0.0
+    CLASS = cat['CLASS_STAR']
+    # ~ FLAG = cat['FLAGS']
+    # ~ nobj = len(cat)
+    # ~ ALFA = cat['ALPHA_J2000']
+    # ~ DELTA = cat['DELTA_J2000']
+    # ~ control2 = np.zeros(4, float)
+    # ~ comnobjar = 0.0
 
     # STARS CANDIDATES
     hi_class = cat['CLASS_STAR'] > 0.85
-    hifwhm = cat['FWHM_IMAGE'] - fwhm > -0.5
-    lofwhm = cat['FWHM_IMAGE'] - fwhm < 0.8
+    hifwhm = cat['FWHM_IMAGE'] > fwhm - 0.5
+    lofwhm = cat['FWHM_IMAGE'] < fwhm + 0.8
 
-    candidatas = cat[hi_class & hifwhm & lofwhm
+    candidatas = cat[hi_class & hifwhm & lofwhm]
 
     if plot is not None:
-        print 'Total candidatas = {}'.format(len(candidatas))#'m,n',m, n
+        print 'Total candidatas = {}'.format(len(candidatas))  # 'm,n',m, n
         print 'Valor de seeing = {}'.format(fwhm)
         plt.plot(MAGBEST, MUMAX, 'k.')
         plt.xlabel('MAG_BEST')
@@ -40,7 +40,7 @@ def star_gx(salida_sex, fwhm, plot=None):
 
         plt.plot(MAGBEST, CLASS, 'k.')
         plt.xlabel('MAG_BEST')
-        plt.ylabel('MU_MAX')
+        plt.ylabel('CLASS_STAR')
         plt.show()
 
         plt.plot(FWHM, MAGBEST, 'k.')
@@ -48,8 +48,8 @@ def star_gx(salida_sex, fwhm, plot=None):
         plt.xlabel('FWHM')
         plt.show()
 
-    X = candidatas['X_IMAGE']
-    Y = candidatas['Y_IMAGE']
+    X = candidatas['MAG_BEST']
+    Y = candidatas['MU_MAX']
     nrot = len(candidatas)
     X2 = X**2
     Y2 = Y**2
@@ -67,21 +67,17 @@ def star_gx(salida_sex, fwhm, plot=None):
     vary = varx * m + n
 
     # x y of the line to do the selection
-    #x=range(int(MAGBEST.max()-MAGBEST.min()))+MAGBEST.min()
+    # x=range(int(MAGBEST.max()-MAGBEST.min()))+MAGBEST.min()
     zero = MAGBEST.min()
     x = range(15) + zero
     y = m * x + (muaj - 20.)
 
-    anchomag = 0.4  #width in magnitudes
+    anchomag = 0.4  # width in magnitudes
     ancho = anchomag
 
-    #print 'ancho',anchomag, ancho
-    mumin = 7.8#float(raw_input('Ingrese mu minimo '))
+    # print 'ancho',anchomag, ancho
+    mumin = 7.8  # float(raw_input('Ingrese mu minimo '))
     mumax = 20.5
-    stars = np.zeros((nobj,26),float)
-    gx = np.zeros((nobj,26),float)
-    g = 0
-    i = 0
 
     mu = m * cat['MAG_BEST'] + (muaj - 20.)
     hi_mu = cat['MU_MAX'] > mumin
@@ -89,37 +85,37 @@ def star_gx(salida_sex, fwhm, plot=None):
     lo_flag = cat['FLAGS'] < 4.
 
     goodies = cat[hi_mu & hi_fwhm & lo_flag]
+    mus = m * goodies['MAG_BEST'] + (muaj -20.)
 
-    upp_mu = goodies['MU_MAX'] < mu+ancho
-    low_mu = goodies['MU_MAX'] > mu-ancho
+    upp_mu = goodies['MU_MAX'] < mus+ancho
+    low_mu = goodies['MU_MAX'] > mus-ancho  # da 0
     under_mu = goodies['MU_MAX'] < mumax
     small_fwhm = goodies['FWHM_IMAGE'] < fwhm+0.8
 
-    stars = goodies[upp_mu & low_mu & under_mu & small_fwhm]
+    f = upp_mu & low_mu & under_mu & small_fwhm
 
-    pre_gx = goodies[!(upp_mu & low_mu & under_mu & small_fwhm)]
-    gx = pre_gx[pre_gx['CLASS_STAR'] > 0.8 | pre_gx['MU_MAX'] > mu-ancho]
+    stars = goodies[f]
+    pre_gx = goodies[~f]
+    hiclass = pre_gx['CLASS_STAR'] > 0.8
+    himus = pre_gx['MU_MAX'] > mus[~f]-ancho
+    gx = pre_gx[hiclass | himus]
 
-
-
-    stars=stars[:i,:]
-    gx=gx[:g,:]
-    #print 'fwhm', fwhm
-    #print 'n obj', nobj
+    # print 'fwhm', fwhm
+    # print 'n obj', nobj
     print 'cantidad de estrellas seleccionadas: ', len(stars)
     print 'cantidad de galaxias seleccionadas: ', len(gx)
 
-    starsmag = stars[:,11]
-    starsmu=stars[:,23]
-    starsfw=stars[:,20]
+    starsmag = stars['MAG_BEST']
+    starsmu = stars['MU_MAX']
+    starsfw = stars['FWHM_IMAGE']
 
-    gxmag = gx[:, 11]
-    gxmu = gx[:, 23]
-    gxfw = gx[:, 20]
+    gxmag = gx['MAG_BEST']
+    gxmu = gx['MU_MAX']
+    gxfw = gx['FWHM_IMAGE']
 
-    if plot in ('s', 'S', 'si', 'Si', 'SI'):
-        print 'm,n',m, n
-        plt.plot(MAGBEST,MUMAX, 'k.',
+    if plot is not None:
+        print 'm = {}, n = {}'.format(m, n)
+        plt.plot(MAGBEST, MUMAX, 'k.',
                  starsmag, starsmu, 'b.',
                  gxmag, gxmu, 'g.',
                  x, y, 'r',
@@ -129,13 +125,12 @@ def star_gx(salida_sex, fwhm, plot=None):
         plt.ylabel('MU_MAX')
         plt.show()
 
-        plt.plot(FWHM,MAGBEST, 'k.',
+        plt.plot(FWHM, MAGBEST, 'k.',
                  starsfw, starsmag, 'b*',
                  gxfw, gxmag, 'g.')
 
         plt.ylabel('MAGBEST')
         plt.xlabel('FWHM')
         plt.show()
-
 
     return stars, gx

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import os
 import shlex
 import subprocess
@@ -28,7 +30,8 @@ def write_sexconf(dest_file, sexconf_dict):
         f1.write(template.render(sexconf_dict))
 
 
-def seeing(imagen, pixsize, corrida, filtro, magmax, magmin, fwhmmax, plot=None):
+def seeing(imagen, pixsize, corrida, filtro, magmax,
+           magmin, fwhmmax, plot=None):
     """Function to calculate the seeing level of an image, and separate the
     stars from the galaxies.
 
@@ -71,6 +74,7 @@ def seeing(imagen, pixsize, corrida, filtro, magmax, magmin, fwhmmax, plot=None)
     # wait=raw_input('chequear y presionar ENTER')
     cat = ascii.read(salida_sex, format='sextractor')
     # reads the catalogue of the first run of sextractor
+
 # =============================================================================
 #    COMPUTE SATURATION LEVEL
 # =============================================================================
@@ -156,6 +160,8 @@ def seeing(imagen, pixsize, corrida, filtro, magmax, magmin, fwhmmax, plot=None)
     sexconf['seeing_fwhm'] = seeing
 
     write_sexconf(sexfile, sexconf)
+    callsex_cmd = shlex.split('sex '+imagen+' -c '+sexfile)
+    subprocess.call(callsex_cmd)
 
     del(cat)
     del(FWHM)
