@@ -171,4 +171,4 @@ def seeing(imagen, pixsize, corrida, filtro, magmax,
     del(fwhm)
     del(mag)
 
-    return seeing
+    return seeing, sexconf['salida_sex']
