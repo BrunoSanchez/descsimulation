@@ -77,7 +77,7 @@ def star_gx(salida_sex, fwhm, plot=None):
 
     # print 'ancho',anchomag, ancho
     mumin = 7.8  # float(raw_input('Ingrese mu minimo '))
-    mumax = 19.  # 20.5
+    mumax = 17.  # 20.5
 
     mu = m * cat['MAG_BEST'] + (muaj - 20.)
     hi_mu = cat['MU_MAX'] > mumin
