@@ -21,7 +21,8 @@
 #  MA 02110-1301, USA.
 #
 #
-
+import numpy as np
+from astropy.nddata.utils import extract_array
 from properimage import propercoadd as pc
 import seeing_des
 import star_gx
@@ -83,17 +84,20 @@ class SingleImageDES(pc.SingleImage):
                                          self.seeing/par['pixsize'],
                                          par['plot'])
 
-            stars.sort['MAG_BEST']
-            p_sizes = np.sqrt(np.percentile(stars['tnpix'], q=[35, 55, 85]))
+            stars.sort('MAG_BEST')
+            p_sizes = np.sqrt(np.percentile(stars['ISOAREA_IMAGE'],
+                                            q=[35, 55, 85]))
             if not p_sizes[1] < 12:
                 fitshape = (int(p_sizes[1]), int(p_sizes[1]))
             else:
                 fitshape = (12, 12)
 
             print 'Sources good to calculate = {}'.format(len(stars))
-            if len(stars) > 130:
-                stars = stars[:130]
-                print 'masking to first 130 sources'
+            if len(stars) > 150:
+                jj = np.random.choice(len(stars), 150, replace=False)
+                stars = stars[jj]
+                # ~ stars = stars[:200]
+                print 'masking to 150 sources'
 
             self._best_sources = {'sources': stars, 'fitshape': fitshape}
 
