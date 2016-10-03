@@ -24,6 +24,7 @@
 import numpy as np
 from astropy.nddata.utils import extract_array
 from properimage import propercoadd as pc
+from properimage import numpydb as npdb
 import seeing_des
 import star_gx
 
@@ -87,30 +88,36 @@ class SingleImageDES(pc.SingleImage):
             stars.sort('MAG_BEST')
             p_sizes = np.sqrt(np.percentile(stars['ISOAREA_IMAGE'],
                                             q=[35, 55, 85]))
-            if not p_sizes[1] < 12:
+            if not p_sizes[1] < 11:
                 fitshape = (int(p_sizes[1]), int(p_sizes[1]))
             else:
-                fitshape = (12, 12)
+                fitshape = (11, 11)
 
             print 'Sources good to calculate = {}'.format(len(stars))
-            if len(stars) > 150:
-                jj = np.random.choice(len(stars), 150, replace=False)
-                stars = stars[jj]
-                # ~ stars = stars[:200]
-                print 'masking to 150 sources'
-
             self._best_sources = {'sources': stars, 'fitshape': fitshape}
 
-            Patch = []
+            self.db = npdb.NumPyDB_cPickle(self.dbname, mode='store')
+
             pos = []
+            jj = 0
             for row in stars:
                 position = [row['Y_IMAGE'], row['X_IMAGE']]
                 sub_array_data = extract_array(self.bkg_sub_img,
                                                fitshape, position,
                                                fill_value=self.bkg.globalrms)
-                Patch.append(sub_array_data)
+                sub_array_data = sub_array_data/np.sum(sub_array_data)
+
+                # Patch.append(sub_array_data)
+                self.db.dump(sub_array_data, jj)
                 pos.append(position)
-            self._best_sources['patches'] = np.array(Patch)
+                jj += 1
+
+            # self._best_sources['patches'] = np.array(Patch)
             self._best_sources['positions'] = np.array(pos)
+            self._best_sources['n_sources'] = jj
+            # self._best_sources['detected'] = srcs
+            # self.db = npdb.NumPyDB_cPickle(self._dbname, mode='store')
+
+            print 'returning best sources'
         return self._best_sources
 

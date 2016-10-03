@@ -4,15 +4,13 @@ import numpy as np
 from astropy.io import fits
 import sys
 
-sys.path.insert(0, os.path.abspath('..'))
+from properimage import propercoad as pc
+from properimage import utils
 
-import zackay_code.properimage.propercoadd.propercoadd as pc
 
 frame = '/home/bruno/Devel/DESCSimulation/imagenes-LN-PSF/im_06_10.fits'
 
 im = pc.SingleImage(frame, imagefile=True)
-
-#fitted_models = sim.fit_psf_sep()
 
 # =============================================================================
 #    PSF spatially variant
