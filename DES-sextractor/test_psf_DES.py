@@ -79,17 +79,19 @@ def main(image, path, plot=None):
     plt.savefig(os.path.join(test_dir, 'psf_basis.png'))
     plt.close()
 
-    x, y = np.mgrid[:im.imagedata.shape[0], :im.imagedata.shape[1]]
-    plt.figure(figsize=(16, 16))
-    for i in range(len(a_fields)):
-        plt.subplot(subplots, subplots, i+1)
-        plt.imshow(a_fields[i](x, y))
-        plt.plot(im._best_srcs['sources']['X_IMAGE'],
-                 im._best_srcs['sources']['Y_IMAGE'],
-                 'ro')
-        plt.colorbar(orientation='horizontal')
-    plt.savefig(os.path.join(test_dir, 'a_fields.png'))
-    plt.close()
+    if len(psf_basis) > 1:
+        x, y = np.mgrid[:im.imagedata.shape[0], :im.imagedata.shape[1]]
+        plt.figure(figsize=(16, 16))
+        for i in range(len(a_fields)):
+            plt.subplot(subplots, subplots, i+1)
+            plt.imshow(a_fields[i](x, y))
+            plt.plot(im._best_srcs['sources']['X_IMAGE'],
+                     im._best_srcs['sources']['Y_IMAGE'],
+                     'ro')
+            plt.colorbar(orientation='horizontal')
+        plt.savefig(os.path.join(test_dir, 'a_fields.png'))
+        plt.close()
+
     return a_fields, psf_basis, im
 
 if __name__ == '__main__':

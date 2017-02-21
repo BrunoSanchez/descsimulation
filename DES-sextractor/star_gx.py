@@ -82,7 +82,7 @@ def star_gx(salida_sex, fwhm, plot=None):
     mu = m * cat['MAG_BEST'] + (muaj - 20.)
     hi_mu = cat['MU_MAX'] > mumin
     hi_fwhm = cat['FWHM_IMAGE'] > fwhm - 0.5
-    lo_flag = cat['FLAGS'] < 2.
+    lo_flag = cat['FLAGS'] <= 2.
 
     goodies = cat[hi_mu & hi_fwhm & lo_flag]
     mus = m * goodies['MAG_BEST'] + (muaj -20.)

@@ -87,9 +87,11 @@ class SingleImageDES(pc.SingleImage):
 
             stars.sort('MAG_BEST')
             p_sizes = np.sqrt(np.percentile(stars['ISOAREA_IMAGE'],
-                                            q=[35, 55, 85]))
+                                            q=[35, 55, 75]))
             if not p_sizes[1] < 11:
-                fitshape = (int(p_sizes[1]), int(p_sizes[1]))
+                dx = int(p_sizes[1])
+                if dx % 2 == 0: dx += 1
+                fitshape = (dx, dx)
             else:
                 fitshape = (11, 11)
 
@@ -119,5 +121,7 @@ class SingleImageDES(pc.SingleImage):
             # self.db = npdb.NumPyDB_cPickle(self._dbname, mode='store')
 
             print 'returning best sources'
+
+            self._gxs = gxs
         return self._best_sources
 
