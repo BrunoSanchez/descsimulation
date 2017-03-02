@@ -12,24 +12,31 @@ from psffile import *
 from selectstars import *
 from im2shape_run import *
 from seeing_des import *
+from astropy.io import fits
+from fit_gaussian import *
 
 cosmo = {'omega_M_0':0.3, 'omega_lambda_0':0.7, 'omega_k_0':0.0, 'h':0.7}
 
 
 
-ok = 'no'#raw_input('Desea continuar ejecucion (S/N) ')
-PSF = 'si'#raw_input('Chequear PSF (S/N) ')
-plot='no'#raw_input('Graficar (S/N) ')
-pulls=45#int(raw_input('Enter number of pulls '))
+ok = raw_input('Desea continuar ejecucion (S/N) ')
+PSF = raw_input('Chequear PSF (S/N) ')
+plot=raw_input('Graficar (S/N) ')
+pulls=1#int(raw_input('Enter number of pulls '))
 nobj=1#int(raw_input('Emepzar en imagen (0 a n) '))
 proc='LN'#raw_input('Maquina ')
-#~ path='~/Documentos/PhD/Analisis-Lentes/DES_cluster/individualimagefiles/Imagen-tipo-6/imagenes-LN-PSF/'
-path='./'
+path='/home/elizabeth/Documentos/PhD/Analisis-Lentes/DES_cluster/individualimagefiles/Imagen-tipo-6/imagenes-LN-PSF/'
+#~ path='./'
 pix_size=0.27
 pixsize=pix_size
 
 MAGMIN=14.
 MAGMAX=35.
+z_nobj=0.33 
+clase= 0
+DELTA0=-32.081192
+ALFA0=336.75
+extincion=0.
 
 
 
@@ -197,7 +204,7 @@ def analisis(entrada):
     
 	stars, gx = star_gx(salida_sex,plot,fwhm)
 	
-	
+	idenstars=stars[:,0]
 	starsmag=stars[:,11]
 	starsmu=stars[:,23]
 	starsfw=stars[:,20]
@@ -249,11 +256,8 @@ def analisis(entrada):
 	TOTAL_gxback=TOTAL_gxback+nf
 		
 	if nf > 0:
-		#print 'profundidad en magnitud de las gx background', faintmag.max(), faintmag.min()
-    
-
-	
-		#print '----------------------------------------------------------------'
+		
+				#print '----------------------------------------------------------------'
 		#print '                    ESCRIBIENDO ARCHIVOS                        '
 		#print '================================================================'
 		os.system('rm stars'+str(corrida)+'.cat')
@@ -272,13 +276,27 @@ def analisis(entrada):
 		f2.write('\n')	
 		np.savetxt(f2, faintgx, fmt='%6i   %8.3f   %7.3f   %10.7f	%10.7f	%7.3f	%7.3f	%5.1f	 %7.4f	 %7.4f  %5.1f   %8.4f	 %8.4f	 %8.4f	%8.4f	%8.4f	%8.4f	%8.4f	%8.4f 	%8i	%8.2f	%8.3f	%10.4f	  %8.4f	  %5.2f %2i')
 		f2.close()
-
+		
+		
+		
+		   
 		#Corro im2shape en el catalogo de estrellas
 		print 'CORRIDA DE im2shape... estrellas '
+		
+		
+		x_star=stars[:,1]
+		y_star=stars[:,2]
+		fitshape=(16,16)
+		allstars2=fit_gaussian_parche(idenstars,image,x_star,y_star,fitshape)
+		
 		allstars,nstars,ncol=im2shape_run(image,'stars'+str(corrida)+'.cat',
 							 'stars'+str(corrida)+'.out','example_psf.dat',corrida,
 							 '4','1000')	
-	
+
+		
+		import ipdb; ipdb.set_trace()
+		
+		
 		#print '----------------------------------------------------------------'
 		#print '             SELECCION DE ESTRELLAS PARA PSF_FILE               '
 		#print '================================================================'
@@ -488,11 +506,6 @@ while nobj <= N_TOT:
 	contar=0
 	while contar < pulls:
 		iden = nobj
-		z_nobj=0.33 
-		clase= 0
-		DELTA0=-32.081192
-		ALFA0=336.75
-		extincion=0.
 		f122.write(str(iden)+'  ')
 		f122.write(str(ALFA0)+'  ')
 		f122.write(str(DELTA0)+'  ')

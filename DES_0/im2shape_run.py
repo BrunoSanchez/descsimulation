@@ -53,3 +53,4 @@ def im2shape_run(imagen,catfilein,catfileout,psffile,num,chains,niter):
 		
 
 
+#~ im2shape_run(image,'stars'+str(corrida)+'.cat',stars'+str(corrida)+'.out','example_psf.dat',corrida,'4','1000')
