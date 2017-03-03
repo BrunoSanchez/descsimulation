@@ -26,7 +26,7 @@ from astropy.modeling import fitting, models
 import random
 
 
-def GAUSS(ellip, x0, y0, th, noise):
+def GAUSS(e, x0, y0, th, noise):
     escx = 30
     escy = 30
     B = np.zeros((escx, escy), float)
@@ -35,7 +35,6 @@ def GAUSS(ellip, x0, y0, th, noise):
     xg = np.array([x0, y0])
     C = np.zeros((2,2),float)
 
-    e = ellip
     ab = 10.0
     Amp = 20.0
 
@@ -50,11 +49,13 @@ def GAUSS(ellip, x0, y0, th, noise):
 
     for j in range(escy):
         for i in range(escx):
-            x[0]=i
-            x[1]=j
-            resta=x-xg
-            B[j,i]=(A/(2*np.pi*np.linalg.det(C)))*(np.e**(-0.5*(np.dot(np.dot(resta,C),resta))))+B[j,i]+noise*random.random()+30.0
-    return B
+            x[0] = i
+            x[1] = j
+            resta = x - xg
+            B[j,i]=np.e**(-0.5*(np.dot(np.dot(resta,C),resta)))
+
+    B = B + noise*np.random.random(B.shape) + 30.0
+    return B * Amp
 
 def FIT(B):
 
@@ -68,21 +69,23 @@ def FIT(B):
                           theta=np.pi/4.,
                           amplitude=B.max()-B.min())+models.Const2D(amplitude=B.min())
 
-    out = fitter(p, x2, y2, B, maxiter=10000)
+    out = fitter(p, x2, y2, B, maxiter=100000)
     return out
 
 
-thetain=80.
+thetain=85.
 print 'theta in',thetain
 
 
-for ellip in np.arange(0.01,0.9,0.02):
+for ellip in np.arange(0.01,0.9,0.1):
 
     B=GAUSS(ellip, x0=15.,y0=15.,th=thetain,noise=0.)
     out=FIT(B)[0]
     y2,x2=np.mgrid[:30,:30]
 
-    elip = (out.x_stddev - out.y_stddev)/(out.x_stddev + out.y_stddev)
+    e = (out.x_stddev - out.y_stddev)/(out.x_stddev + out.y_stddev)
     th = np.rad2deg(out.theta)
-    print 'theta out ',th
-    print 'elip out = ',(out.x_stddev - out.y_stddev)/(out.x_stddev + out.y_stddev)
+    print 'Input parameters:'
+    print 'theta={}, e={}'.format(thetain, ellip)
+    print 'Output parameters:'
+    print 'theta={}, e={}'.format(th, e)
