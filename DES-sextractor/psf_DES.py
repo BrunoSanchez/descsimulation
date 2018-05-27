@@ -23,13 +23,13 @@
 #
 import numpy as np
 from astropy.nddata.utils import extract_array
-from properimage import propercoadd as pc
+from properimage import single_image as si
 from properimage import numpydb as npdb
 import seeing_des
 import star_gx
 
 
-class SingleImageDES(pc.SingleImage):
+class SingleImageDES(si.SingleImage):
     """Class to analyze a single image using propercoadd.SingleImage class.
     It improves the star selection for psf determination.
     It makes use of sextractor and seeing_des, star_gx modules.
@@ -66,7 +66,7 @@ class SingleImageDES(pc.SingleImage):
 
 
     @property
-    def _best_srcs(self):
+    def best_sources(self):
         """Property, a table of best sources detected in the image.
 
         """
@@ -86,42 +86,47 @@ class SingleImageDES(pc.SingleImage):
                                          par['plot'])
 
             stars.sort('MAG_BEST')
-            p_sizes = np.sqrt(np.percentile(stars['ISOAREA_IMAGE'],
-                                            q=[35, 55, 75]))
-            if not p_sizes[1] < 11:
-                dx = int(p_sizes[1])
-                if dx % 2 == 0: dx += 1
-                fitshape = (dx, dx)
-            else:
-                fitshape = (11, 11)
+
+            if len(stars) > 1800:
+                jj = np.random.choice(len(stars), 1800, replace=False)
+                stars = stars[jj]
 
             print 'Sources good to calculate = {}'.format(len(stars))
-            self._best_sources = {'sources': stars, 'fitshape': fitshape}
+            stars['x'] = stars['X_IMAGE']-1.
+            stars['y'] = stars['Y_IMAGE']-1.
 
-            self.db = npdb.NumPyDB_cPickle(self.dbname, mode='store')
-
-            pos = []
-            jj = 0
-            for row in stars:
-                position = [row['Y_IMAGE'], row['X_IMAGE']]
-                sub_array_data = extract_array(self.bkg_sub_img,
-                                               fitshape, position,
-                                               fill_value=self.bkg.globalrms)
-                sub_array_data = sub_array_data/np.sum(sub_array_data)
-
-                # Patch.append(sub_array_data)
-                self.db.dump(sub_array_data, jj)
-                pos.append(position)
-                jj += 1
-
-            # self._best_sources['patches'] = np.array(Patch)
-            self._best_sources['positions'] = np.array(pos)
-            self._best_sources['n_sources'] = jj
-            # self._best_sources['detected'] = srcs
-            # self.db = npdb.NumPyDB_cPickle(self._dbname, mode='store')
-
-            print 'returning best sources'
-
+            self._best_sources = stars
             self._gxs = gxs
+            print 'returning best sources'
         return self._best_sources
+
+    @property
+    def gxs(self):
+        try:
+            return self._gxs
+        except AttributeError:
+            s = self.best_sources
+            return self._gxs
+
+    @property
+    def stamp_shape(self):
+        return self.__stamp_shape
+
+    @stamp_shape.setter
+    def stamp_shape(self, shape):
+        if not hasattr(self, '__stamp_shape'):
+            if shape is None:
+                #~ percent = np.percentile(self.best_sources['ISOAREA_IMAGE'], q=65)
+                #~ p_sizes = 2.*np.sqrt(percent)
+                percent = np.percentile(self.best_sources['FWHM_IMAGE'], q=65)
+                p_sizes = 3.*percent
+
+                if p_sizes >= 9:
+                    dx = int(p_sizes)
+                    if dx % 2 != 1: dx += 1
+                    shape = (dx, dx)
+                else:
+                    shape = (9, 9)
+                print(('stamps will be {} x {}'.format(*shape)))
+        self.__stamp_shape = shape
 
