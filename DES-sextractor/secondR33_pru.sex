@@ -36,7 +36,7 @@ MASK_TYPE       CORRECT         # type of detection MASKing: can be one of
 PHOT_APERTURES  10              # MAG_APER aperture diameter(s) in pixels
 PHOT_AUTOPARAMS 2.5, 3.5        # MAG_AUTO parameters: <Kron_fact>,<min_radius>
 
-SATUR_LEVEL     51601 # level (in ADUs) at which arises saturation
+SATUR_LEVEL     51621 # level (in ADUs) at which arises saturation
 
 MAG_ZEROPOINT   26.73    # magnitude zero-point
 MAG_GAMMA       4.0             # gamma of emulsion (for photographic scans)
@@ -45,7 +45,7 @@ PIXEL_SCALE     0.27  # size of pixel in arcsec (0=use FITS WCS info).
 
 #------------------------- Star/Galaxy Separation ----------------------------
 
-SEEING_FWHM     0.81945 # stellar FWHM in arcsec
+SEEING_FWHM     0.84915 # stellar FWHM in arcsec
 STARNNW_NAME    /home/bruno/packages/sextractor-2.19.5/share/sextractor/default.nnw     # Neural-Network_Weight table filename
 
 #------------------------------ Background -----------------------------------
